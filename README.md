@@ -29,7 +29,7 @@ A comprehensive backend system for the Truth Lens application that provides fact
    - Multi-language translation
    - Automatic language detection
    - Batch translation support
-   - Powered by Google Translate or LibreTranslate
+  - Powered by independent hosted translation model API
 
 5. **🔍 RAG (Retrieval-Augmented Generation)**
    - Intelligent information search
@@ -41,8 +41,8 @@ A comprehensive backend system for the Truth Lens application that provides fact
 
 - Node.js >= 18.0.0
 - PostgreSQL database
-- OpenAI API key (required for core features)
-- Optional: Google Cloud APIs, ElevenLabs API
+- Four independently hosted model APIs (OCR, Fact Check, Translation, Speech)
+- OpenAI API key (only if using current RAG service implementation)
 
 ## 🛠️ Installation
 
@@ -384,10 +384,15 @@ Content-Type: application/json
 | `PORT` | Server port | No (default: 3000) |
 | `NODE_ENV` | Environment mode | No (default: development) |
 | `DATABASE_URL` | PostgreSQL connection string | Yes |
-| `OPENAI_API_KEY` | OpenAI API key | Yes |
-| `GOOGLE_TRANSLATE_API_KEY` | Google Translate API key | No |
-| `GOOGLE_FACT_CHECK_API_KEY` | Google Fact Check API key | No |
-| `ELEVEN_LABS_API_KEY` | ElevenLabs API key | No |
+| `OCR_MODEL_API_URL` | OCR model API base URL | Yes |
+| `OCR_MODEL_API_KEY` | OCR model API auth key | No |
+| `FACT_CHECK_MODEL_API_URL` | Fact-check model API base URL | Yes |
+| `FACT_CHECK_MODEL_API_KEY` | Fact-check model API auth key | No |
+| `TRANSLATION_MODEL_API_URL` | Translation model API base URL | Yes |
+| `TRANSLATION_MODEL_API_KEY` | Translation model API auth key | No |
+| `SPEECH_MODEL_API_URL` | Speech model API base URL | Yes |
+| `SPEECH_MODEL_API_KEY` | Speech model API auth key | No |
+| `OPENAI_API_KEY` | OpenAI key for current RAG service | No |
 
 ## 🧪 Testing
 
@@ -508,5 +513,6 @@ For issues and questions, please open an issue on the repository.
 ---
 
 **Note**: This is a comprehensive backend system that requires proper API keys and configuration. Make sure to secure your environment variables and never commit them to version control.
-#   T r u t h - L e n s - B a c k e n d  
+#   T r u t h - L e n s - B a c k e n d 
+ 
  

@@ -1,0 +1,69 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model News {
+  id          String   @id @default(uuid())
+  title       String
+  description String   @db.Text
+  content     String   @db.Text
+  isHot       Boolean  @default(false)
+  isTrending  Boolean  @default(false)
+  source      String?
+  imageUrl    String?
+  category    String?
+  publishedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isTrending, isHot])
+  @@index([publishedAt])
+}
+
+model FactCheck {
+  id              String   @id @default(uuid())
+  originalText    String   @db.Text
+  isFactual       Boolean
+  verificationStatus String // "TRUE", "FALSE", "PARTIALLY_TRUE", "UNVERIFIED"
+  explanation     String   @db.Text
+  sources         Json?    // Array of source URLs
+  confidence      Float    // 0-1 confidence score
+  language        String   @default("en")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([createdAt])
+}
+
+model SearchHistory {
+  id        String   @id @default(uuid())
+  query     String   @db.Text
+  results   Json?    // Store RAG results
+  userId    String?  // Optional user tracking
+  language  String   @default("en")
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model UserPreference {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  preferredLanguage String @default("en")
+  voiceEnabled    Boolean  @default(true)
+  autoTranslate   Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
