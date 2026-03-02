@@ -20,7 +20,6 @@ const factCheckRoutes = require('./routes/factCheckRoutes');
 const speechRoutes = require('./routes/speechRoutes');
 const ragRoutes = require('./routes/ragRoutes');
 const translationRoutes = require('./routes/translationRoutes');
-const simulatorRoutes = require('./routes/simulatorRoutes');
 
 // Initialize Express app
 const app = express();
@@ -53,7 +52,6 @@ app.use('/api/fact-check', strictLimiter, factCheckRoutes);
 app.use('/api/speech', strictLimiter, speechRoutes);
 app.use('/api/rag', apiLimiter, ragRoutes);
 app.use('/api/translate', apiLimiter, translationRoutes);
-app.use('/api/simulator', apiLimiter, simulatorRoutes);
 
 // ===== Root Route =====
 app.get('/', (req, res) => {
@@ -67,7 +65,6 @@ app.get('/', (req, res) => {
       speech: '/api/speech',
       rag: '/api/rag',
       translate: '/api/translate',
-      simulator: '/api/simulator',
     },
     documentation: 'See README.md for full API documentation',
   });

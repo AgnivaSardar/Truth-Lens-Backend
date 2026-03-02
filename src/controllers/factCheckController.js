@@ -11,8 +11,7 @@ const ocrService = require('../services/ocrService');
 const factCheckService = require('../services/factCheckService');
 const translationService = require('../services/translationService');
 const speechService = require('../services/speechService');
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../lib/db');
 
 class FactCheckController {
   /**

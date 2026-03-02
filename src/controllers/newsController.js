@@ -3,8 +3,7 @@
  * Handles CRUD operations for news and trending topics
  */
 
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../lib/db');
 
 class NewsController {
   /**
@@ -288,6 +287,104 @@ class NewsController {
       res.status(500).json({
         success: false,
         error: 'Failed to fetch statistics',
+      });
+    }
+  }
+
+  /**
+   * Get high-impact news (same as hot news with impact scoring)
+   */
+  async getHighImpactNews(req, res) {
+    try {
+      const { limit = 10 } = req.query;
+
+      const news = await prisma.news.findMany({
+        where: { isHot: true },
+        take: parseInt(limit),
+        orderBy: [
+          { impactScore: 'desc' },
+          { publishedAt: 'desc' }
+        ],
+      });
+
+      res.json({
+        success: true,
+        data: news,
+      });
+    } catch (error) {
+      console.error('Get High Impact News Error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch high-impact news',
+      });
+    }
+  }
+
+  /**
+   * Get news by slug/topic
+   */
+  async getNewsBySlug(req, res) {
+    try {
+      const { slug } = req.params;
+
+      const news = await prisma.news.findFirst({
+        where: { 
+          OR: [
+            { slug: slug },
+            { category: slug }
+          ]
+        },
+      });
+
+      if (!news) {
+        return res.status(404).json({
+          success: false,
+          error: 'News article not found',
+        });
+      }
+
+      res.json({
+        success: true,
+        data: news,
+      });
+    } catch (error) {
+      console.error('Get News By Slug Error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch news article',
+      });
+    }
+  }
+
+  /**
+   * Get viral claims (for Fake or Not section)
+   */
+  async getViralClaims(req, res) {
+    try {
+      const { limit = 10 } = req.query;
+
+      const claims = await prisma.news.findMany({
+        where: { isViral: true },
+        take: parseInt(limit),
+        orderBy: { publishedAt: 'desc' },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          verificationStatus: true,
+          publishedAt: true,
+        }
+      });
+
+      res.json({
+        success: true,
+        data: claims,
+      });
+    } catch (error) {
+      console.error('Get Viral Claims Error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch viral claims',
       });
     }
   }

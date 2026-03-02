@@ -15,19 +15,26 @@ datasource db {
 model News {
   id          String   @id @default(uuid())
   title       String
+  slug        String?  @unique // URL-friendly identifier
   description String   @db.Text
   content     String   @db.Text
   isHot       Boolean  @default(false)
   isTrending  Boolean  @default(false)
+  isViral     Boolean  @default(false) // For viral claims
   source      String?
   imageUrl    String?
   category    String?
+  impactScore Int?     // 0-100 for high-impact ranking
+  trendScore  Int?     // 0-100 for trending ranking
+  verificationStatus String? // For viral claims: "Fake", "Likely True", "Needs Context"
   publishedAt DateTime @default(now())
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([isTrending, isHot])
   @@index([publishedAt])
+  @@index([slug])
+  @@index([isViral])
 }
 
 model FactCheck {
@@ -233,3 +240,4 @@ model DetectionAttempt {
   @@index([userId, createdAt])
   @@index([challengeId])
 }
+
