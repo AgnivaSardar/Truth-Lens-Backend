@@ -204,13 +204,13 @@ Database (Prisma)
 ## 🔑 Required API Keys
 
 ### Essential (Required)
-- **OpenAI API Key**: Used for fact-checking, RAG search, embeddings, Whisper STT, and TTS
+- **OCR_MODEL_API_URL** (+ optional **OCR_MODEL_API_KEY**)
+- **FACT_CHECK_MODEL_API_URL** (+ optional **FACT_CHECK_MODEL_API_KEY**)
+- **TRANSLATION_MODEL_API_URL** (+ optional **TRANSLATION_MODEL_API_KEY**)
+- **SPEECH_MODEL_API_URL** (+ optional **SPEECH_MODEL_API_KEY**)
 
-### Optional (Enhanced Features)
-- **Google Translate API Key**: Better translation quality
-- **Google Fact Check API Key**: Professional fact-checking database
-- **Google Cloud API Key**: Google Speech-to-Text
-- **ElevenLabs API Key**: Premium quality text-to-speech
+### Optional (if using current RAG service)
+- **OPENAI_API_KEY** for embeddings and answer generation
 
 ## 📊 Data Flow Examples
 
