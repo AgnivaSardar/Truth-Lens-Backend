@@ -20,6 +20,7 @@ const factCheckRoutes = require('./routes/factCheckRoutes');
 const speechRoutes = require('./routes/speechRoutes');
 const ragRoutes = require('./routes/ragRoutes');
 const translationRoutes = require('./routes/translationRoutes');
+const simulatorRoutes = require('./routes/simulatorRoutes');
 
 // Initialize Express app
 const app = express();
@@ -52,6 +53,7 @@ app.use('/api/fact-check', strictLimiter, factCheckRoutes);
 app.use('/api/speech', strictLimiter, speechRoutes);
 app.use('/api/rag', apiLimiter, ragRoutes);
 app.use('/api/translate', apiLimiter, translationRoutes);
+app.use('/api/simulator', apiLimiter, simulatorRoutes);
 
 // ===== Root Route =====
 app.get('/', (req, res) => {
@@ -65,6 +67,7 @@ app.get('/', (req, res) => {
       speech: '/api/speech',
       rag: '/api/rag',
       translate: '/api/translate',
+      simulator: '/api/simulator',
     },
     documentation: 'See README.md for full API documentation',
   });
@@ -99,6 +102,7 @@ Available Services:
   🎤 Speech API:         http://localhost:${PORT}/api/speech
   🔍 RAG API:            http://localhost:${PORT}/api/rag
   🌐 Translation API:    http://localhost:${PORT}/api/translate
+  🎮 Simulator API:      http://localhost:${PORT}/api/simulator
 
 Health Check:          http://localhost:${PORT}/health
   `);

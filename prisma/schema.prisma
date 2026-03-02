@@ -10,7 +10,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model News {
@@ -66,4 +65,171 @@ model UserPreference {
   autoTranslate   Boolean  @default(false)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+}
+
+// Misinformation Simulator Models - Branching Narrative Game
+
+model Scenario {
+  id          String   @id @default(uuid())
+  title       String
+  description String   @db.Text
+  context     String   @db.Text // Background story for the scenario
+  targetTopic String   // e.g., "fuel prices", "healthcare", "election"
+  difficulty  String   @default("medium") // easy, medium, hard
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  games         SimulationGame[]
+  decisionNodes DecisionNode[]
+  
+  @@index([isActive, difficulty])
+}
+
+model DecisionNode {
+  id          String   @id @default(uuid())
+  scenarioId  String
+  scenario    Scenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+  
+  stepNumber  Int      // Position in the decision tree (1, 2, 3, etc.)
+  question    String   @db.Text // The situation/question presented to user
+  description String?  @db.Text // Additional context for this decision point
+  isRoot      Boolean  @default(false) // Is this the starting node?
+  isLeaf      Boolean  @default(false) // Is this a final node?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Decision options available at this node
+  options     DecisionOption[] @relation("NodeOptions")
+  
+  // Decisions that lead TO this node
+  parentOptions DecisionOption[] @relation("NextNode")
+  
+  @@index([scenarioId, stepNumber])
+  @@index([scenarioId, isRoot])
+}
+
+model DecisionOption {
+  id              String       @id @default(uuid())
+  nodeId          String
+  node            DecisionNode @relation("NodeOptions", fields: [nodeId], references: [id], onDelete: Cascade)
+  
+  optionText      String       @db.Text // The choice text shown to user
+  explanation     String?      @db.Text // What this choice means
+  tacticUsed      String       // e.g., "fear_mongering", "conspiracy_framing", "emotional_language"
+  
+  // Impact of this choice on metrics
+  engagementDelta Int          @default(0) // +/- change to engagement
+  viralityDelta   Int          @default(0) // +/- change to virality
+  ourageDelta     Int          @default(0) // +/- change to outrage
+  credibilityDelta Int         @default(0) // +/- change to credibility
+  
+  // Where this choice leads
+  nextNodeId      String?
+  nextNode        DecisionNode? @relation("NextNode", fields: [nextNodeId], references: [id])
+  
+  order           Int          @default(1) // Display order (1 or 2)
+  createdAt       DateTime     @default(now())
+  
+  // Track when users choose this option
+  choices         GameChoice[]
+  
+  @@index([nodeId])
+  @@index([nextNodeId])
+}
+
+model SimulationGame {
+  id              String   @id @default(uuid())
+  scenarioId      String
+  scenario        Scenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+  userId          String?  // Optional user tracking
+  
+  // Current game state
+  currentNodeId   String?  // Where user is in the decision tree
+  pathTaken       Json?    // Array of decision IDs taken
+  
+  // Accumulated metrics from choices
+  engagementScore  Float    @default(20) // Start at base 20
+  viralityScore    Float    @default(15) // Start at base 15
+  outrageScore     Float    @default(10) // Start at base 10
+  credibilityScore Float    @default(50) // Start neutral
+  
+  // Generated content at the end
+  generatedHeadline String?  @db.Text // Final fake news headline
+  generatedContent  String?  @db.Text // Final fake news article
+  tacticsSummary    Json?    // Summary of all tactics used
+  
+  // Educational insights
+  triggersUsed      Json?    // Array of psychological triggers identified
+  realWorldExamples Json?    // Array of similar real incidents
+  consequences      String?  @db.Text // Explanation of potential harm
+  
+  // Game state
+  phase           String    @default("playing") // "playing", "completed"
+  score           Int       @default(0) // Overall game score
+  completedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  choices         GameChoice[]
+  
+  @@index([userId, createdAt])
+  @@index([scenarioId])
+  @@index([phase])
+}
+
+model GameChoice {
+  id            String         @id @default(uuid())
+  gameId        String
+  game          SimulationGame @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  
+  optionId      String
+  option        DecisionOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  
+  stepNumber    Int            // Which step in the game
+  createdAt     DateTime       @default(now())
+  
+  @@index([gameId, stepNumber])
+  @@index([optionId])
+}
+
+model DetectionChallenge {
+  id              String   @id @default(uuid())
+  title           String
+  content         String   @db.Text // The misinformation content to analyze
+  imageUrl        String?  // Optional manipulated image
+  correctTactics  Json     // Array of correct manipulation tactics used
+  difficulty      String   @default("medium") // easy, medium, hard
+  explanation     String   @db.Text // Educational explanation
+  realExample     Boolean  @default(false) // Is this based on real misinformation?
+  category        String?  // "political", "health", "climate", "social"
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  attempts        DetectionAttempt[]
+  
+  @@index([isActive, difficulty])
+  @@index([category])
+}
+
+model DetectionAttempt {
+  id                String             @id @default(uuid())
+  challengeId       String
+  challenge         DetectionChallenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  userId            String?            // Optional user tracking
+  
+  identifiedTactics Json               // Array of tactics user identified
+  correctCount      Int                @default(0)
+  totalTactics      Int                @default(0)
+  accuracy          Float              @default(0) // Percentage correct
+  timeSpent         Int?               // Seconds spent on challenge
+  score             Int                @default(0)
+  completed         Boolean            @default(false)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  
+  @@index([userId, createdAt])
+  @@index([challengeId])
 }

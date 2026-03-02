@@ -4,6 +4,7 @@
  */
 
 const axios = require('axios');
+const FormData = require('form-data');
 
 class OCRService {
   constructor() {
@@ -12,10 +13,8 @@ class OCRService {
     this.timeout = Number(process.env.OCR_MODEL_API_TIMEOUT_MS || 30000);
   }
 
-  buildHeaders() {
-    const headers = {
-      'Content-Type': 'application/json',
-    };
+  buildHeaders(formData) {
+    const headers = formData ? formData.getHeaders() : {};
 
     if (this.apiKey) {
       headers.Authorization = `Bearer ${this.apiKey}`;
@@ -26,11 +25,31 @@ class OCRService {
 
   normalizeImage(imageData) {
     if (Buffer.isBuffer(imageData)) {
-      return imageData.toString('base64');
+      return {
+        buffer: imageData,
+        filename: 'image.png',
+        contentType: 'image/png',
+      };
     }
 
     if (typeof imageData === 'string') {
-      return imageData.replace(/^data:image\/\w+;base64,/, '');
+      const dataUriMatch = imageData.match(/^data:(image\/[\w.+-]+);base64,(.+)$/);
+
+      if (dataUriMatch) {
+        const [, contentType, base64Data] = dataUriMatch;
+        const extension = contentType.split('/')[1] || 'png';
+        return {
+          buffer: Buffer.from(base64Data, 'base64'),
+          filename: `image.${extension}`,
+          contentType,
+        };
+      }
+
+      return {
+        buffer: Buffer.from(imageData, 'base64'),
+        filename: 'image.png',
+        contentType: 'image/png',
+      };
     }
 
     throw new Error('Invalid image format. Expected base64 string or Buffer.');
@@ -40,6 +59,14 @@ class OCRService {
     if (!this.baseUrl) {
       throw new Error('OCR_MODEL_API_URL is not configured');
     }
+  }
+
+  getExtractTextUrl() {
+    const trimmedBaseUrl = this.baseUrl.replace(/\/+$/, '');
+    if (/\/extract-text$/i.test(trimmedBaseUrl)) {
+      return trimmedBaseUrl;
+    }
+    return `${trimmedBaseUrl}/extract-text`;
   }
 
   /**
@@ -61,15 +88,22 @@ class OCRService {
     try {
       this.ensureConfigured();
       const image = this.normalizeImage(imageData);
+      const formData = new FormData();
+
+      formData.append('file', image.buffer, {
+        filename: image.filename,
+        contentType: image.contentType,
+      });
+
+      if (language) {
+        formData.append('language', language);
+      }
 
       const response = await axios.post(
-        `${this.baseUrl}/extract-text`,
+        this.getExtractTextUrl(),
+        formData,
         {
-          image,
-          language,
-        },
-        {
-          headers: this.buildHeaders(),
+          headers: this.buildHeaders(formData),
           timeout: this.timeout,
         }
       );

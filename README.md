@@ -29,13 +29,22 @@ A comprehensive backend system for the Truth Lens application that provides fact
    - Multi-language translation
    - Automatic language detection
    - Batch translation support
-  - Powered by independent hosted translation model API
+   - Powered by independent hosted translation model API
 
 5. **🔍 RAG (Retrieval-Augmented Generation)**
    - Intelligent information search
    - Context-aware responses
    - Search history tracking
    - Vector-based document retrieval
+
+6. **🎮 Misinformation Simulator** ✨ NEW
+   - Game-based learning platform
+   - Play as misinformation creator to understand tactics
+   - Learn psychological manipulation triggers
+   - Detection mode to practice spotting misinformation
+   - Real-world consequences education
+   - Leaderboard and progress tracking
+   - See [SIMULATOR_API.md](docs/SIMULATOR_API.md) for full documentation
 
 ## 📋 Prerequisites
 
@@ -365,6 +374,52 @@ Content-Type: application/json
   }
 }
 ```
+
+### Misinformation Simulator Endpoints
+
+The Misinformation Simulator is a comprehensive game-based learning platform. Full API documentation available at [docs/SIMULATOR_API.md](docs/SIMULATOR_API.md).
+
+#### Quick Overview
+
+**Game Creation Mode:**
+- `GET /api/simulator/scenarios` - Get available scenarios
+- `POST /api/simulator/games/start` - Start new game
+- `POST /api/simulator/games/:id/submit` - Submit choices and run simulation
+- `POST /api/simulator/games/:id/complete` - Complete game
+- `GET /api/simulator/leaderboard` - Get top scores
+
+**Detection Mode:**
+- `GET /api/simulator/detection/challenges` - Get detection challenges
+- `POST /api/simulator/detection/submit` - Submit detection attempt
+- `GET /api/simulator/detection/history/:userId` - Get user's detection history
+
+**Statistics:**
+- `GET /api/simulator/stats/:userId` - Get comprehensive user statistics
+
+**Example Game Flow:**
+```javascript
+// 1. Start game
+POST /api/simulator/games/start
+{
+  "scenarioId": "uuid",
+  "role": "fake_news_creator",
+  "userId": "user123"
+}
+
+// 2. Submit choices
+POST /api/simulator/games/:id/submit
+{
+  "emotionalWording": "SHOCKING news!",
+  "selectedEmotion": "fear",
+  "imageManipulation": "dramatic_filter",
+  "hashtags": ["#Breaking"],
+  "targetAudience": "general"
+}
+
+// Response shows virality, engagement, psychological triggers used
+```
+
+See [SIMULATOR_API.md](docs/SIMULATOR_API.md) for complete documentation with all endpoints, request/response formats, and game mechanics.
 
 ## 🗄️ Database Schema
 
