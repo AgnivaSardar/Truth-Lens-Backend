@@ -43,6 +43,15 @@ class FactCheckController {
       console.log('Step 2: Fact checking...');
       const factCheckResult = await factCheckService.checkFact(ocrResult.text);
 
+      let isFactual = false;
+      if (factCheckResult.status === 'TRUE') {
+        isFactual = true;
+      } else if (factCheckResult.status === 'FALSE') {
+        isFactual = false;
+      } else if (factCheckResult.status === 'MISLEADING') {
+        isFactual = false;
+      }
+
       // Step 3: Translate if needed (language !== 'en')
       let translatedExplanation = factCheckResult.explanation;
       if (language !== 'en') {
@@ -70,8 +79,8 @@ class FactCheckController {
       const savedFactCheck = await prisma.factCheck.create({
         data: {
           originalText: ocrResult.text,
-          isFactual: factCheckResult.isFactual,
-          verificationStatus: factCheckResult.verificationStatus,
+          isFactual: isFactual,
+          verificationStatus: factCheckResult.status,
           explanation: factCheckResult.explanation,
           sources: factCheckResult.sources,
           confidence: factCheckResult.confidence,
@@ -86,11 +95,14 @@ class FactCheckController {
           extractedText: ocrResult.text,
           ocrConfidence: ocrResult.confidence,
           factCheck: {
-            isFactual: factCheckResult.isFactual,
-            status: factCheckResult.verificationStatus,
+            isFactual: isFactual,
+            status: factCheckResult.status,
             explanation: translatedExplanation,
             sources: factCheckResult.sources,
             confidence: factCheckResult.confidence,
+            queryType: factCheckResult.queryType,
+            entities: factCheckResult.entities,
+            impactAnalysis: factCheckResult.impactAnalysis,
           },
           language,
           audio: audioData,
@@ -158,12 +170,24 @@ class FactCheckController {
         audioData = audioResult.audioBuffer.toString('base64');
       }
 
+      // Determine isFactual from verification status
+      let isFactual = false;
+      if (factCheckResult.status === 'TRUE') {
+        isFactual = true;
+      } else if (factCheckResult.status === 'FALSE') {
+        isFactual = false;
+      } else if (factCheckResult.status === 'MISLEADING') {
+        isFactual = false;
+      } else {
+        isFactual = false; // Default for UNCERTAIN, NO_RESULTS, ERROR
+      }
+
       // Save to database
       const savedFactCheck = await prisma.factCheck.create({
         data: {
           originalText: text,
-          isFactual: factCheckResult.isFactual,
-          verificationStatus: factCheckResult.verificationStatus,
+          isFactual: isFactual,
+          verificationStatus: factCheckResult.status,
           explanation: factCheckResult.explanation,
           sources: factCheckResult.sources,
           confidence: factCheckResult.confidence,
@@ -177,11 +201,14 @@ class FactCheckController {
           id: savedFactCheck.id,
           originalText: text,
           factCheck: {
-            isFactual: factCheckResult.isFactual,
-            status: factCheckResult.verificationStatus,
+            isFactual: isFactual,
+            status: factCheckResult.status,
             explanation: translatedExplanation,
             sources: factCheckResult.sources,
             confidence: factCheckResult.confidence,
+            queryType: factCheckResult.queryType,
+            entities: factCheckResult.entities,
+            impactAnalysis: factCheckResult.impactAnalysis,
           },
           language: detectedLanguage,
           audio: audioData,

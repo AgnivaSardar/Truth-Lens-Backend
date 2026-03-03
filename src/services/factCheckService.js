@@ -33,7 +33,7 @@ class FactCheckService {
   /**
    * Check if a statement is factual using AI
    * @param {string} text - Text to fact-check
-   * @returns {Promise<{isFactual: boolean, status: string, explanation: string, sources: array, confidence: number}>}
+   * @returns {Promise<{isFactual: boolean, status: string, explanation: string, sources: array, confidence: number, queryType: string, entities: string, impactAnalysis?: string}>}
    */
   async checkFact(text) {
     try {
@@ -50,11 +50,15 @@ class FactCheckService {
       const payload = response.data?.data || response.data || {};
 
       return {
-        isFactual: Boolean(payload.isFactual),
-        verificationStatus: payload.verificationStatus || 'UNVERIFIED',
+        isFactual: payload.isFactual,
+        status: payload.status || payload.verificationStatus || 'UNCERTAIN',
         explanation: payload.explanation || 'No explanation provided.',
         sources: Array.isArray(payload.sources) ? payload.sources : [],
         confidence: Number(payload.confidence ?? 0),
+        queryType: payload.queryType || 'general',
+        entities: payload.entities || '',
+        impactAnalysis: payload.impactAnalysis || undefined,
+        verificationStatus: payload.status || payload.verificationStatus || 'UNVERIFIED',
       };
     } catch (error) {
       console.error('Fact Check Error:', error);

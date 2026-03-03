@@ -12,7 +12,7 @@ const morgan = require('morgan');
 // Import middleware
 const logger = require('./middleware/logger');
 const errorHandler = require('./middleware/errorHandler');
-const { apiLimiter, strictLimiter } = require('./middleware/rateLimiter');
+const { apiLimiter, strictLimiter, factCheckLimiter } = require('./middleware/rateLimiter');
 
 // Import routes
 const newsRoutes = require('./routes/newsRoutes');
@@ -48,7 +48,7 @@ app.get('/health', (req, res) => {
 
 // ===== API Routes =====
 app.use('/api/news', apiLimiter, newsRoutes);
-app.use('/api/fact-check', strictLimiter, factCheckRoutes);
+app.use('/api/fact-check', factCheckLimiter, factCheckRoutes);
 app.use('/api/speech', strictLimiter, speechRoutes);
 app.use('/api/rag', apiLimiter, ragRoutes);
 app.use('/api/translate', apiLimiter, translationRoutes);
